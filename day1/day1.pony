@@ -2,10 +2,7 @@ use "collections"
 use "files"
 
 actor Main
-  let env: Env
-
-  new create(_env: Env) =>
-    this.env = _env
+  new create(env: Env) =>
     try
       let input_array = List[U32]()
       let path = FilePath(env.root as AmbientAuth, "input.txt")?
