@@ -3,22 +3,22 @@ use "files"
 use "itertools"
 
 actor Main
-  let env: Env
-  new create(_env: Env) =>
-    env = _env
-    let input = parse_input()
-    let num_valid = Iter[PasswordRequirements](input.values())
-      .filter({ (req) => req.is_valid() })
-      .count()
-    env.out.print(num_valid.string())
+  new create(env: Env) =>
+    try
+      let input = parse_input(env.root as AmbientAuth)
+      let num_valid = Iter[PasswordRequirements](input.values())
+        // .filter({ (req) => req.part1_is_valid() })
+        .filter({ (req) => req.part2_is_valid() })
+        .count()
+      env.out.print(num_valid.string())
+    end
 
-  fun parse_input(): Array[PasswordRequirements] =>
+  fun parse_input(auth: AmbientAuth): Array[PasswordRequirements] =>
     let input_array = Array[PasswordRequirements]()
     try
-      let path = FilePath(env.root as AmbientAuth, "input.txt")?
+      let path = FilePath(auth, "input.txt")?
       with file = File(path) do
-        let lines = file.lines()
-        for line in lines do
+        for line in file.lines() do
           input_array.push(PasswordRequirements(consume line))
         end
       end
@@ -59,9 +59,15 @@ class PasswordRequirements
       ""
     end
 
-  fun is_valid(): Bool =>
+  fun part1_is_valid(): Bool =>
     let num_chars = password.count(char)
     (min <= num_chars) and (num_chars <= max)
+
+  fun part2_is_valid(): Bool =>
+    let char1 = password.substring(min.isize() - 1, min.isize())
+    let char2 = password.substring(max.isize() - 1, max.isize())
+
+    (char1 == char) xor (char2 == char)
 
 
 
