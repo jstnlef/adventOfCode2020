@@ -1,11 +1,10 @@
 use "files"
 use "itertools"
+use "regex"
 
 
 actor Main
-  let env: Env
-  new create(_env: Env) =>
-    env = _env
+  new create(env: Env) =>
     try
       let input = parse_passports(env.root as AmbientAuth)
       let num_valid = Iter[Passport](input.values())
@@ -22,19 +21,15 @@ actor Main
       with file = File(path) do
         for line in file.lines() do
           if line == "" then
-            let passport = Passport(buffer.clone())
-            env.out.print("Buffer: " + buffer.clone() + " VALID: " + passport.part1_is_valid().string())
-            passports.push(passport)
+            passports.push(Passport(buffer.clone()))
             buffer = ""
           else
             buffer = buffer + " " + consume line
           end
-        end
-
-        if buffer != "" then
+        else
+          // Ensure that whatever is left in the buffer is parsed as a passport
           let passport = Passport(buffer.clone())
-          env.out.print("Buffer: " + buffer.clone() + " VALID: " + passport.part1_is_valid().string())
-          passports.push(passport)
+          passports.push(Passport(buffer.clone()))
           buffer = ""
         end
       end
@@ -91,11 +86,51 @@ class Passport
       validate_byr() and
       validate_iyr() and
       validate_eyr() and
-      (hgt isnt None) and
-      (hcl isnt None) and
-      (ecl isnt None) and
-      (pid isnt None)
+      validate_hgt() and
+      validate_hcl() and
+      validate_ecl() and
+      validate_pid()
     )
+
+  fun validate_hgt(): Bool =>
+    match hgt
+      | None => false
+      | let s: String =>
+        try
+          let r = Regex("^(\\d+)(cm|in)$")?
+          let matched = r(s)?
+          let n = matched(1)?.usize()?
+          let unit = matched(2)?
+          match (consume unit)
+            | "cm" => (150 <= n) and (n <= 193)
+            | "in" => (59 <= n) and (n <= 76)
+            else false
+          end
+        else
+          false
+        end
+    end
+
+  fun validate_hcl(): Bool =>
+    _validate_regex(hcl, "^#[0-9a-fA-F]{6}$")
+
+  fun validate_ecl(): Bool =>
+    _validate_regex(ecl, "^(amb|blu|brn|gry|grn|hzl|oth)$")
+
+  fun validate_pid(): Bool =>
+    _validate_regex(pid, "^\\d{9}$")
+
+  fun _validate_regex(prop: (String | None), regex: String): Bool =>
+    match prop
+      | None => false
+      | let s: String =>
+        try
+          let r = Regex(regex)?
+          r == s
+        else
+          false
+        end
+    end
 
   fun validate_byr(): Bool =>
     _validate_year(byr, 1920, 2002)
