@@ -5,8 +5,16 @@ actor Main
   new create(env: Env) =>
     try
       let forest = parse_forest(env.root as AmbientAuth)
-      // Part 1
-      env.out.print(forest.count_trees(3, 1).string())
+
+      let count = (
+        forest.count_trees(1, 1) *
+        forest.count_trees(3, 1) *
+        forest.count_trees(5, 1) *
+        forest.count_trees(7, 1) *
+        forest.count_trees(1, 2)
+      )
+
+      env.out.print(count.string())
     end
 
   fun parse_forest(auth: AmbientAuth): Forest =>
