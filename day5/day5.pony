@@ -1,3 +1,4 @@
+use "collections"
 use "debug"
 use "files"
 use "itertools"
@@ -7,16 +8,17 @@ actor Main
   new create(env: Env) =>
     try
       let input = parse_input(env.root as AmbientAuth)
+      let seat_ids = Iter[SeatAssignment](input.values())
+        .map[USize]({ (assignment) => assignment.seat_id() })
+        .collect(Array[USize](input.size()))
 
-      var max: USize = 0
-      for assignment in input.values() do
-        let seat_id = assignment.seat_id()
-        if seat_id > max then
-          max = seat_id
-        end
-      end
+      let sorted = Sort[Array[USize], USize](seat_ids)
 
-      env.out.print(max.string())
+      var max = find_max_assignment(sorted)?
+      env.out.print("Max: " + max.string())
+
+      var my_seat = find_my_seat(sorted)?
+      env.out.print("My Seat: " + my_seat.string())
     end
 
   fun parse_input(auth: AmbientAuth): Array[SeatAssignment] =>
@@ -33,9 +35,21 @@ actor Main
       input
     end
 
+  fun find_max_assignment(sorted_input: Array[USize]): USize? =>
+    sorted_input(sorted_input.size() - 1)?
+
+  fun find_my_seat(sorted_input: Array[USize]): USize? =>
+    var expected_seat: USize = sorted_input(0)?
+    for seat_id in sorted_input.values() do
+      if seat_id != expected_seat then
+        break
+      end
+      expected_seat = expected_seat + 1
+    end
+    expected_seat
+
 
 class SeatAssignment
-  let _max_rows: USize = 128
   let _max_seats: USize = 8
   let row: USize
   let seat: USize
