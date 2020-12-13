@@ -1,5 +1,4 @@
 use "collections"
-use "debug"
 use "files"
 use "itertools"
 use "regex"
@@ -38,8 +37,17 @@ class Rules
   fun ref add_rule(rule: Rule) =>
     inner.insert(rule.bag, rule.contained)
 
-  fun number_of_bags(target_bag: Bag): USize =>
-    0
+  fun ref number_of_bags(start: Bag): USize =>
+    var num_bags: USize = 0
+    try
+      let contained: Array[BagWithAmount] = inner(start)?
+      for bag in contained.values() do
+        num_bags = num_bags + bag.number + (bag.number * number_of_bags(bag.bag))
+      end
+      num_bags
+    else
+      0
+    end
 
   fun bags_that_can_contain_target(target_bag: Bag): USize =>
     var count: USize = 0
