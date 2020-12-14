@@ -8,7 +8,10 @@ actor Main
       let input = parse_input(env.root as AmbientAuth)
 
       let first_invalid = XMAS.find_first_invalid(input)
-      env.out.print(first_invalid.string())
+      env.out.print("First Invalid: " + first_invalid.string())
+
+      let encryption_weakness = XMAS.find_encryption_weakness(input, first_invalid)
+      env.out.print("Encryption weakness: " + encryption_weakness.string())
     end
 
   fun parse_input(auth: AmbientAuth): Array[USize] =>
@@ -26,6 +29,31 @@ actor Main
     end
 
 primitive XMAS
+  fun find_encryption_weakness(numbers: Array[USize], invalid: USize): USize =>
+    // Essentially sets up a sliding window of contiguous elements until a solution is found.
+    try
+      var sum = numbers(0)?
+      var lower: USize = 0
+      var upper: USize = 0
+
+      while upper < numbers.size() do
+        if (sum == invalid) and ((upper - lower) >= 1) then
+          return numbers(lower)? + numbers(upper)?
+        end
+
+        // Grow the window by one
+        upper = upper + 1
+        sum = sum + numbers(upper)?
+
+        // If we're greater than the invalid number, shrink the window
+        while (sum > invalid) do
+          sum = sum - numbers(lower)?
+          lower = lower + 1
+        end
+      end
+    end
+    0
+
   fun find_first_invalid(numbers: Array[USize], preamble_size: USize = 25): USize =>
     var lower: USize = 0
     var higher: USize = preamble_size
@@ -51,7 +79,6 @@ primitive XMAS
     lower_index: USize,
     higher_index: USize
   ): Bool =>
-    Debug.out("Checking " + number.string() + " is valid. Window: [" + lower_index.string() + "-" + higher_index.string() + "]")
     try
       for i in Range(lower_index, higher_index) do
         for j in Range(i, higher_index) do
