@@ -37,8 +37,6 @@ primitive JoltCalc
     var previous: USize = 0
 
     for joltage in sorted_adapters.values() do
-      Debug.out("Jolts: " + joltage.string())
-
       let delta = joltage - previous
 
       if delta == 1 then
