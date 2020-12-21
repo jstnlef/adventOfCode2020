@@ -33,7 +33,7 @@ actor Main
 primitive Scheduling
   fun find_earliest_bus(notes: BusNotes): USize =>
     var start_time: USize = notes.earliest_time
-    var time: USize = start_time
+    var time: USize = start_time - 1
     var id: USize = 0
 
     while id == 0 do
