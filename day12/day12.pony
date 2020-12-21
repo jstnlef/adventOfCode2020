@@ -53,13 +53,10 @@ class Instruction
 class WaypointBoat is Boat
   var waypoint: Vector = Vector(10, 1)
   var my_pos: Vector = Vector(0, 0)
-  var my_dir: Direction = East
 
   new create() => None
 
   fun position(): this->Vector => my_pos
-
-  fun direction(): Direction => my_dir
 
   fun ref _process_direction(dir_or_forward: (Direction | Forward), amount: ISize) =>
     match dir_or_forward
@@ -140,8 +137,6 @@ trait Boat
     end
 
   fun position(): this->Vector
-
-  fun direction(): Direction
 
   fun ref _process_direction(dir: (Direction | Forward), amount: ISize)
 
