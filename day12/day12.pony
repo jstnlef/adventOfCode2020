@@ -75,7 +75,7 @@ class Boat
   fun ref _turn(degrees: ISize)? =>
     let max_degrees: ISize = 360
     let new_dir = (((direction.degrees() + degrees) % max_degrees) + max_degrees) % max_degrees
-    direction = match new_dir.abs()
+    direction = match new_dir
       | 0 => East
       | 90 => South
       | 180 => West
