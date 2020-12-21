@@ -6,15 +6,19 @@ actor Main
   new create(env: Env) =>
     try
       let instructions = parse_input(env.root as AmbientAuth)
-      let boat = Boat
-      Debug.out("0 " + boat.string())
-      var i: USize = 1
+      let boat = DirectMovementBoat
       for instruction in instructions.values() do
         boat(instruction)?
-        Debug.out(i.string() + " " + boat.string())
-        i = i + 1
       end
-      env.out.print("Manhattan distance: " + boat.position.manhattan_distance().string())
+      env.out.print("Manhattan distance of direct movement boat: " + boat.position().manhattan_distance().string())
+
+      let waypoint_boat = WaypointBoat
+      for instruction in instructions.values() do
+        waypoint_boat(instruction)?
+      end
+      env.out.print("Manhattan distance of waypoint boat: " + waypoint_boat.position().manhattan_distance().string())
+    else
+      env.err.print("Error running simulation")
     end
 
   fun parse_input(auth: AmbientAuth): Array[Instruction] =>
@@ -46,36 +50,70 @@ class Instruction
     end
 
 
-class Boat
-  var position: Vector = Vector(0, 0)
-  var direction: Direction = East
+class WaypointBoat is Boat
+  var waypoint: Vector = Vector(10, 1)
+  var my_pos: Vector = Vector(0, 0)
+  var my_dir: Direction = East
 
-  new create() =>
-    None
+  new create() => None
 
-  fun ref apply(instruction: Instruction)? =>
-    match instruction.itype
-      | "N" => _move(North, instruction.value)
-      | "S" => _move(South, instruction.value)
-      | "E" => _move(East, instruction.value)
-      | "W" => _move(West, instruction.value)
-      | "L" => _turn(-instruction.value)?
-      | "R" => _turn(instruction.value)?
-      | "F" => _move(direction, instruction.value)
+  fun position(): this->Vector => my_pos
+
+  fun direction(): Direction => my_dir
+
+  fun ref _process_direction(dir_or_forward: (Direction | Forward), amount: ISize) =>
+    match dir_or_forward
+      | let dir: Forward => my_pos = my_pos + (waypoint * amount)
+      | let dir: Direction =>
+        match dir
+          | North => waypoint = waypoint + (Vector(0, 1) * amount)
+          | South => waypoint = waypoint + (Vector(0, -1) * amount)
+          | East => waypoint = waypoint + (Vector(1, 0) * amount)
+          | West => waypoint = waypoint + (Vector(-1, 0) * amount)
+        end
     end
 
-  fun ref _move(dir: Direction, amount: ISize) =>
-    position = match dir
-      | North => position + (Vector(0, 1) * amount)
-      | South => position + (Vector(0, -1) * amount)
-      | East => position + (Vector(1, 0) * amount)
-      | West => position + (Vector(-1, 0) * amount)
+  fun ref _process_rotation(degrees: ISize)? =>
+    waypoint = match degrees
+      | 0 => Vector(waypoint.x, waypoint.y)
+      | 90 | -270 => Vector(waypoint.y, -waypoint.x)
+      | 180 | -180 => Vector(-waypoint.x, -waypoint.y)
+      | 270 | -90 => Vector(-waypoint.y, waypoint.x)
+      else error
     end
 
-  fun ref _turn(degrees: ISize)? =>
+  fun string(): String =>
+    "Boat(pos: " + position().string() + ", waypoint: " + waypoint.string() + ")"
+
+
+class DirectMovementBoat is Boat
+  var my_pos: Vector = Vector(0, 0)
+  var my_dir: Direction = East
+
+  new create() => None
+
+  fun position(): this->Vector => my_pos
+
+  fun direction(): Direction => my_dir
+
+  fun ref _process_direction(dir_or_forward: (Direction | Forward), amount: ISize) =>
+    let dir = match dir_or_forward
+      | Forward => my_dir
+      | let d: Direction => d
+    end
+
+    my_pos = match dir
+      | North => my_pos + (Vector(0, 1) * amount)
+      | South => my_pos + (Vector(0, -1) * amount)
+      | East => my_pos + (Vector(1, 0) * amount)
+      | West => my_pos + (Vector(-1, 0) * amount)
+    end
+
+  fun ref _process_rotation(degrees: ISize)? =>
     let max_degrees: ISize = 360
-    let new_dir = (((direction.degrees() + degrees) % max_degrees) + max_degrees) % max_degrees
-    direction = match new_dir
+    // XXX: Ew. Really wish this worked more like python's mod
+    let new_dir = (((direction().degrees() + degrees) % max_degrees) + max_degrees) % max_degrees
+    my_dir = match new_dir
       | 0 => East
       | 90 => South
       | 180 => West
@@ -86,8 +124,31 @@ class Boat
     end
 
   fun string(): String =>
-    "Boat(pos: " + position.string() + ", dir: " + direction.string() + ")"
+    "Boat(pos: " + position().string() + ", dir: " + direction().string() + ")"
 
+
+trait Boat
+  fun ref apply(instruction: Instruction)? =>
+    match instruction.itype
+      | "N" => _process_direction(North, instruction.value)
+      | "S" => _process_direction(South, instruction.value)
+      | "E" => _process_direction(East, instruction.value)
+      | "W" => _process_direction(West, instruction.value)
+      | "L" => _process_rotation(-instruction.value)?
+      | "R" => _process_rotation(instruction.value)?
+      | "F" => _process_direction(Forward, instruction.value)
+    end
+
+  fun position(): this->Vector
+
+  fun direction(): Direction
+
+  fun ref _process_direction(dir: (Direction | Forward), amount: ISize)
+
+  fun ref _process_rotation(degrees: ISize)?
+
+
+primitive Forward
 
 primitive North
   fun degrees(): ISize => 270
