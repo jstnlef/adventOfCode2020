@@ -4,7 +4,7 @@ use "files"
 actor Main
   new create(env: Env) =>
     try
-      let input_array = List[U32]()
+      let input_array = Array[U32](200)
       let path = FilePath(env.root as AmbientAuth, "input.txt")?
       with file = File(path) do
         let lines = file.lines()
@@ -18,7 +18,7 @@ actor Main
       env.out.print("Unable to process file")
     end
 
-  fun find_answer(input: List[U32]): U32 =>
+  fun find_answer(input: Array[U32]): U32 =>
     for i in input.values() do
       for j in input.values() do
         for k in input.values() do
