@@ -61,13 +61,7 @@ class WaypointBoat is Boat
   fun ref _process_direction(dir_or_forward: (Direction | Forward), amount: ISize) =>
     match dir_or_forward
       | let dir: Forward => my_pos = my_pos + (waypoint * amount)
-      | let dir: Direction =>
-        match dir
-          | North => waypoint = waypoint + (Vector(0, 1) * amount)
-          | South => waypoint = waypoint + (Vector(0, -1) * amount)
-          | East => waypoint = waypoint + (Vector(1, 0) * amount)
-          | West => waypoint = waypoint + (Vector(-1, 0) * amount)
-        end
+      | let dir: Direction => waypoint = waypoint + (dir.unit_vec() * amount)
     end
 
   fun ref _process_rotation(degrees: ISize)? =>
@@ -101,12 +95,7 @@ class DirectMovementBoat is Boat
       | let d: Direction => d
     end
 
-    my_pos = match dir
-      | North => my_pos + (Vector(0, 1) * amount)
-      | South => my_pos + (Vector(0, -1) * amount)
-      | East => my_pos + (Vector(1, 0) * amount)
-      | West => my_pos + (Vector(-1, 0) * amount)
-    end
+    my_pos = my_pos + (dir.unit_vec() * amount)
 
   fun ref _process_rotation(degrees: ISize)? =>
     // XXX: Ew. Really wish this worked more like python's mod
@@ -149,15 +138,22 @@ primitive Forward
 primitive North
   fun degrees(): ISize => 270
   fun string(): String => "North"
+  fun unit_vec(): Vector => Vector(0, 1)
+
 primitive South
   fun degrees(): ISize => 90
   fun string(): String => "South"
+  fun unit_vec(): Vector => Vector(0, -1)
+
 primitive East
   fun degrees(): ISize => 0
   fun string(): String => "East"
+  fun unit_vec(): Vector => Vector(1, 0)
+
 primitive West
   fun degrees(): ISize => 180
   fun string(): String => "West"
+  fun unit_vec(): Vector => Vector(-1, 0)
 
 type Direction is (North | South | East | West)
 
