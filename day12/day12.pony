@@ -84,6 +84,8 @@ class WaypointBoat is Boat
 
 
 class DirectMovementBoat is Boat
+  let max_degrees: ISize = 360
+
   var my_pos: Vector = Vector(0, 0)
   var my_dir: Direction = East
 
@@ -107,7 +109,6 @@ class DirectMovementBoat is Boat
     end
 
   fun ref _process_rotation(degrees: ISize)? =>
-    let max_degrees: ISize = 360
     // XXX: Ew. Really wish this worked more like python's mod
     let new_dir = (((direction().degrees() + degrees) % max_degrees) + max_degrees) % max_degrees
     my_dir = match new_dir
