@@ -4,21 +4,27 @@ use "files"
 
 actor Main
   new create(env: Env) =>
-    try
-      let instructions = parse_input(env.root as AmbientAuth)
-      let boat = DirectMovementBoat
-      for instruction in instructions.values() do
-        boat(instruction)?
-      end
-      env.out.print("Manhattan distance of direct movement boat: " + boat.position().manhattan_distance().string())
-
-      let waypoint_boat = WaypointBoat
-      for instruction in instructions.values() do
-        waypoint_boat(instruction)?
-      end
-      env.out.print("Manhattan distance of waypoint boat: " + waypoint_boat.position().manhattan_distance().string())
+    let instructions = try
+      parse_input(env.root as AmbientAuth)
     else
-      env.err.print("Error running simulation")
+      env.err.print("Unable to parse input!")
+      return
+    end
+
+    try
+      let boat = DirectMovementBoat
+      boat.perform(instructions)?
+      env.out.print("Manhattan distance of DirectMovementBoat: " + boat.position().manhattan_distance().string())
+    else
+      env.err.print("Error running DirectMovementBoat simulation")
+    end
+
+    try
+      let waypoint_boat = WaypointBoat
+      waypoint_boat.perform(instructions)?
+      env.out.print("Manhattan distance of WaypointBoat: " + waypoint_boat.position().manhattan_distance().string())
+    else
+      env.err.print("Error running WaypointBoat simulation")
     end
 
   fun parse_input(auth: AmbientAuth): Array[Instruction] =>
@@ -115,6 +121,11 @@ class DirectMovementBoat is Boat
 
 
 trait Boat
+  fun ref perform(instructions: Seq[Instruction])? =>
+    for instruction in instructions.values() do
+      this(instruction)?
+    end
+
   fun ref apply(instruction: Instruction)? =>
     match instruction.itype
       | "N" => _process_direction(North, instruction.value)
