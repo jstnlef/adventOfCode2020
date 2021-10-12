@@ -5,30 +5,31 @@ use "files"
 
 actor Main
   new create(env: Env) =>
-    try
-      var waiting_area = parse_input(env.root as AmbientAuth)
-      waiting_area.simulate_until_stable()
-      env.out.print("Occupied seats adjacent: " + waiting_area.count_occupied_seats().string())
-
-      waiting_area = parse_input(env.root as AmbientAuth)
-      waiting_area.set_visibility(LineOfSightNeighbors)
-      waiting_area.simulate_until_stable()
-      env.out.print("Occupied seats line of sight: " + waiting_area.count_occupied_seats().string())
+    let auth = try
+      env.root as AmbientAuth
+    else
+      env.out.print("env.root must be AmbientAuth")
+      return
     end
+
+    var waiting_area = parse_input(auth)
+    waiting_area.simulate_until_stable()
+    env.out.print("Occupied seats adjacent: " + waiting_area.count_occupied_seats().string())
+
+    waiting_area = parse_input(auth)
+    waiting_area.set_visibility(LineOfSightNeighbors)
+    waiting_area.simulate_until_stable()
+    env.out.print("Occupied seats line of sight: " + waiting_area.count_occupied_seats().string())
 
   fun parse_input(auth: AmbientAuth): WaitingArea =>
     let waiting_area = WaitingArea
-    try
-      let path = FilePath(auth, "input.txt")?
-      with file = File(path) do
-        for line in file.lines() do
-          waiting_area.add_row(consume line)
-        end
+    let path = FilePath(auth, "input.txt")
+    with file = File(path) do
+      for line in file.lines() do
+        waiting_area.add_row(consume line)
       end
-      waiting_area
-    else
-      waiting_area
     end
+    waiting_area
 
 
 class WaitingArea

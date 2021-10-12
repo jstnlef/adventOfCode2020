@@ -23,17 +23,13 @@ actor Main
 
   fun parse_input(auth: AmbientAuth): Array[SeatAssignment] =>
     let input = Array[SeatAssignment]
-    try
-      let path = FilePath(auth, "input.txt")?
-      with file = File(path) do
-        for line in file.lines() do
-          input.push(SeatAssignment(consume line))
-        end
+    let path = FilePath(auth, "input.txt")
+    with file = File(path) do
+      for line in file.lines() do
+        input.push(SeatAssignment(consume line))
       end
-      input
-    else
-      input
     end
+    input
 
   fun find_max_assignment(sorted_input: Array[USize]): USize? =>
     sorted_input(sorted_input.size() - 1)?

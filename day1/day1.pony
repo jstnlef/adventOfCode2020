@@ -5,7 +5,7 @@ actor Main
   new create(env: Env) =>
     try
       let input_array = Array[U32](200)
-      let path = FilePath(env.root as AmbientAuth, "input.txt")?
+      let path = FilePath(env.root as AmbientAuth, "input.txt")
       with file = File(path) do
         let lines = file.lines()
         for line in lines do

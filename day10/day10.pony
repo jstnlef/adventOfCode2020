@@ -5,8 +5,15 @@ use "files"
 
 actor Main
   new create(env: Env) =>
+    let auth = try
+      env.root as AmbientAuth
+    else
+      env.out.print("env.root must be AmbientAuth")
+      return
+    end
+
     try
-      let input = parse_input(env.root as AmbientAuth)
+      let input = parse_input(auth)
 
       let all_adapters = JoltCalc.use_all_adapters(input)
       env.out.print("All adapters: " + all_adapters.string())
@@ -19,20 +26,18 @@ actor Main
 
   fun parse_input(auth: AmbientAuth): Array[USize] =>
     let input = Array[USize]
-    try
-      let path = FilePath(auth, "input.txt")?
-      with file = File(path) do
-        for line in file.lines() do
-          input.push((consume line).usize()?)
-        end
+    let path = FilePath(auth, "input.txt")
+    with file = File(path) do
+      for line in file.lines() do
+        input.push((consume line).usize()?)
       end
-      let sorted = Sort[Array[USize], USize](input)
+    end
+    let sorted = Sort[Array[USize], USize](input)
+    try
       sorted.insert(0, 0)?
       sorted.push(sorted(sorted.size() - 1)? + 3)
-      sorted
-    else
-      input
     end
+    sorted
 
 
 primitive JoltCalc

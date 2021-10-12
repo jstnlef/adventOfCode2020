@@ -19,17 +19,13 @@ actor Main
 
   fun parse_forest(auth: AmbientAuth): Forest =>
     let forest = Forest
-    try
-      let path = FilePath(auth, "input.txt")?
-      with file = File(path) do
-        for line in file.lines() do
-          forest.push(consume line)
-        end
+    let path = FilePath(auth, "input.txt")
+    with file = File(path) do
+      for line in file.lines() do
+        forest.push(consume line)
       end
-      forest
-    else
-      forest
     end
+    forest
 
 
 class Forest

@@ -28,28 +28,24 @@ actor Main
 
   fun parse_groups(auth: AmbientAuth): Array[Group] =>
     let groups = Array[Group]
-    try
-      let path = FilePath(auth, "input.txt")?
-      var buffer = ""
-      with file = File(path) do
-        for line in file.lines() do
-          if line == "" then
-            groups.push(Group(buffer.clone()))
-            buffer = ""
-          else
-            buffer = buffer + "\n" + consume line
-          end
-        else
-          // Ensure that whatever is left in the buffer is parsed as a passport
-          let group = Group(buffer.clone())
+    let path = FilePath(auth, "input.txt")
+    var buffer = ""
+    with file = File(path) do
+      for line in file.lines() do
+        if line == "" then
           groups.push(Group(buffer.clone()))
           buffer = ""
+        else
+          buffer = buffer + "\n" + consume line
         end
+      else
+        // Ensure that whatever is left in the buffer is parsed as a passport
+        let group = Group(buffer.clone())
+        groups.push(Group(buffer.clone()))
+        buffer = ""
       end
-      groups
-    else
-      groups
     end
+    groups
 
 
 

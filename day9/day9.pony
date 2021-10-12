@@ -4,29 +4,30 @@ use "files"
 
 actor Main
   new create(env: Env) =>
-    try
-      let input = parse_input(env.root as AmbientAuth)
-
-      let first_invalid = XMAS.find_first_invalid(input)
-      env.out.print("First Invalid: " + first_invalid.string())
-
-      let encryption_weakness = XMAS.find_encryption_weakness(input, first_invalid)
-      env.out.print("Encryption weakness: " + encryption_weakness.string())
+    let auth = try
+      env.root as AmbientAuth
+    else
+      env.out.print("env.root must be AmbientAuth")
+      return
     end
+
+    let input = parse_input(auth)
+
+    let first_invalid = XMAS.find_first_invalid(input)
+    env.out.print("First Invalid: " + first_invalid.string())
+
+    let encryption_weakness = XMAS.find_encryption_weakness(input, first_invalid)
+    env.out.print("Encryption weakness: " + encryption_weakness.string())
 
   fun parse_input(auth: AmbientAuth): Array[USize] =>
     let input = Array[USize]
-    try
-      let path = FilePath(auth, "input.txt")?
-      with file = File(path) do
-        for line in file.lines() do
-          input.push((consume line).usize()?)
-        end
+    let path = FilePath(auth, "input.txt")
+    with file = File(path) do
+      for line in file.lines() do
+        input.push((consume line).usize()?)
       end
-      input
-    else
-      input
     end
+    input
 
 primitive XMAS
   fun find_encryption_weakness(numbers: Array[USize], invalid: USize): USize =>

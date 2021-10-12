@@ -29,17 +29,13 @@ actor Main
 
   fun parse_input(auth: AmbientAuth): Array[Instruction] =>
     let instructions = Array[Instruction](760)
-    try
-      let path = FilePath(auth, "input.txt")?
-      with file = File(path) do
-        for line in file.lines() do
-          instructions.push(Instruction(consume line))
-        end
+    let path = FilePath(auth, "input.txt")
+    with file = File(path) do
+      for line in file.lines() do
+        instructions.push(Instruction(consume line))
       end
-      instructions
-    else
-      instructions
     end
+    instructions
 
 
 class Instruction

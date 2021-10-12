@@ -4,35 +4,36 @@ use "files"
 
 actor Main
   new create(env: Env) =>
-    try
-      let program = parse_program(env.root as AmbientAuth)
-      program.run_until_repeated()
-      env.out.print("Accumulator after first repeat: " + program.accumulator.string())
-
-
-      let possible_changes = program.find_nop_and_jmps()
-      for instr in possible_changes.values() do
-        program.reset()
-        if program.run_with_swapped_inst(instr) then
-          break
-        end
-      end
-      env.out.print("Accumulator after program terminates: " + program.accumulator.string())
+    let auth = try
+      env.root as AmbientAuth
+    else
+      env.out.print("Root must be AmbientAuth.")
+      return
     end
+
+    let program = parse_program(auth)
+    program.run_until_repeated()
+    env.out.print("Accumulator after first repeat: " + program.accumulator.string())
+
+
+    let possible_changes = program.find_nop_and_jmps()
+    for instr in possible_changes.values() do
+      program.reset()
+      if program.run_with_swapped_inst(instr) then
+        break
+      end
+    end
+    env.out.print("Accumulator after program terminates: " + program.accumulator.string())
 
   fun parse_program(auth: AmbientAuth): Program =>
     let input = Program
-    try
-      let path = FilePath(auth, "input.txt")?
-      with file = File(path) do
-        for line in file.lines() do
-          input.add_instruction(Instruction(consume line))
-        end
+    let path = FilePath(auth, "input.txt")
+    with file = File(path) do
+      for line in file.lines() do
+        input.add_instruction(Instruction(consume line))
       end
-      input
-    else
-      input
     end
+    input
 
 
 class Program

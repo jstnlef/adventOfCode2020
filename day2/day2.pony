@@ -15,17 +15,13 @@ actor Main
 
   fun parse_input(auth: AmbientAuth): Array[PasswordRequirements] =>
     let input_array = Array[PasswordRequirements]()
-    try
-      let path = FilePath(auth, "input.txt")?
-      with file = File(path) do
-        for line in file.lines() do
-          input_array.push(PasswordRequirements(consume line))
-        end
+    let path = FilePath(auth, "input.txt")
+    with file = File(path) do
+      for line in file.lines() do
+        input_array.push(PasswordRequirements(consume line))
       end
-      input_array
-    else
-      input_array
     end
+    input_array
 
 
 class PasswordRequirements

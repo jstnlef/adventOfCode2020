@@ -5,8 +5,15 @@ use "itertools"
 
 actor Main
   new create(env: Env) =>
+    let auth = try
+      env.root as AmbientAuth
+    else
+      env.err.print("env.root must be AmbientAuth")
+      return
+    end
+
+    let notes = parse_input(auth)
     try
-      let notes = parse_input(env.root as AmbientAuth)
       let earliest = Scheduling.find_earliest_bus(notes)
       env.out.print("Earliest Bus: " + earliest.string())
 
@@ -18,20 +25,16 @@ actor Main
 
   fun parse_input(auth: AmbientAuth): BusNotes =>
     let notes = BusNotes
-    try
-      let path = FilePath(auth, "input.txt")?
-      with file = File(path) do
-        let lines = file.lines()
-        let start_time = lines.next()?
-        notes.set_earliest_start_time((consume start_time).u64()?)
+    let path = FilePath(auth, "input.txt")
+    with file = File(path) do
+      let lines = file.lines()
+      let start_time = lines.next()?
+      notes.set_earliest_start_time((consume start_time).u64()?)
 
-        let bus_times = lines.next()?
-        notes.set_bus_times(consume bus_times)?
-      end
-      notes
-    else
-      notes
+      let bus_times = lines.next()?
+      notes.set_bus_times(consume bus_times)?
     end
+    notes
 
 
 primitive Scheduling
